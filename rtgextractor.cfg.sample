@@ -1,0 +1,7 @@
+# Don't touch this first line with three dashes.
+--- 
+# Modify these to suit your enviroment.
+database: rtg
+pass: password
+host: dbhost
+user: username
