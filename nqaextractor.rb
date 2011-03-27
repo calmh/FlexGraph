@@ -1,5 +1,6 @@
 require 'mysql'
 require 'date'
+require 'yaml'
 
 class NQAExtractor
   def nqa_data(hid, pid, secs)
