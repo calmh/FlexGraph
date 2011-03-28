@@ -86,7 +86,6 @@ class PlotLine
     return "%5.02fG"%(num / 1e9) if num > 1e9
     return "%5.01fM"%(num / 1e6) if num > 1e6
     return "%5.01fK"%(num / 1e3) if num > 1e5
-    return "%5.01fK"%(num / 1e9) if num > 1e2
     return "%6.0f"%num
   end
 end
