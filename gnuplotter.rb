@@ -99,6 +99,16 @@ class PlotTheme
   attr_accessor :plot_background_color
   attr_accessor :primary_grid_color
   attr_accessor :secondary_grid_color
+  # Font face name. The font file needs to reside in GDFONTPATH for this to work.
+  #  font_face = "LiberationSans-Regular"
+  attr_accessor :font_face
+  # Font size (points)
+  attr_accessor :font_size
+  # Font face name. The font file needs to reside in GDFONTPATH for this to work.
+  #  font_face = "LiberationSans-Regular"
+  attr_accessor :title_font_face
+  # Font size (points)
+  attr_accessor :title_font_size
 
   def initialize
     @line_colors = []
@@ -118,17 +128,7 @@ class Plot
   attr_accessor :theme
   # The title of the graph
   attr_accessor :title
-  # Font face name. The font file needs to reside in GDFONTPATH for this to work.
-  #  font_face = "LiberationSans-Regular"
-  attr_accessor :font_face
-  # Font size (points)
-  attr_accessor :font_size
-  # Font face name. The font file needs to reside in GDFONTPATH for this to work.
-  #  font_face = "LiberationSans-Regular"
-  attr_accessor :title_font_face
-  # Font size (points)
-  attr_accessor :title_font_size
-  # Width of graph, in pixels
+ # Width of graph, in pixels
   attr_accessor :width
   # Height of graph, in pixels
   attr_accessor :height
@@ -165,10 +165,10 @@ class Plot
 
   def setup_command
     cmds = []
-      if @font_face.nil?
+      if @theme.nil? || @theme.font_face.nil?
         cmds << "set terminal png small size #{width}, #{height} \\"
       else
-        cmds << "set terminal png font \"#{font_face}\" #{font_size} size #{width}, #{height} \\"
+        cmds << "set terminal png font \"#{@theme.font_face}\" #{@theme.font_size} size #{width}, #{height} \\"
       end
       if @theme.nil?
         cmds << "xffffff x808080 x808080"
@@ -191,10 +191,10 @@ class Plot
     cmds << "set format y2 \"%.1s%c\""
     cmds << "set grid"
     cmds << "set key below Right samplen 2 left reverse"
-    if (@title_font_face.nil?)
+    if @theme.nil? || @theme.title_font_face.nil?
       cmds << "set title \"#{title}\""
     else
-      cmds << "set title \"#{title}\" font \"#{@title_font_face}, #{@title_font_size}\""
+      cmds << "set title \"#{title}\" font \"#{@theme.title_font_face}, #{@theme.title_font_size}\""
     end
     cmds << "set ylabel \"#{@y1unit}\""
     cmds << "set y2label \"#{@y2unit}\""
@@ -405,7 +405,6 @@ if __FILE__ == $PROGRAM_NAME
       p.theme = t
       assert_equal("plot \\\n\"-\" using 1:2 axes x1y1 lt rgb \"#000000\", \\\n\"-\" using 1:2 axes x1y1 lt rgb \"#111111\"\n", p.plot_command)
     end
-
   end
 end
 
