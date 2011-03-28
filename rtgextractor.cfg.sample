@@ -7,6 +7,16 @@ host: dbhost
 user: username
 
 # What interval to aggregate measurements in?
-# This should be at least as large as the polling interval,
-# but can be larger to give a less granular view.
-average_seconds: 300
+# We will use one of the `averaging_intervals` to generate
+# as close to `desired_datapoints` datapoints as possible.
+# I.e. a one hour view will use 60 second averages, while
+# a one day view will use 300 second averages.
+desired_datapoints: 300
+averaging_intervals:
+ - 60
+ - 120
+ - 300
+ - 600
+ - 900
+ - 1800
+ - 3600

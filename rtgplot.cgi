@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'gnuplotter'
-require 'rtgextractor'
+require 'extractor/rtg'
 require 'cgi'
 
 cgi = CGI.new
@@ -15,8 +15,6 @@ if cgi.params.include? 'secs'
 else
   secs = 86400
 end
-
-handle_ids = ids[0]
 
 t = PlotTheme.new
 t.line_width = 1
@@ -35,13 +33,11 @@ p = Plot.new
 p.theme = t
 p.title = title if !title.nil?
 p.width = 640
-p.height = 280
+p.height = 250
 p.font_face = "ttf-liberation/LiberationMono-Regular"
 p.font_size = 8
 p.title_font_face = "ttf-liberation/LiberationSans-Bold"
 p.title_font_size = 11
-
-router_id, interface_id = handle_ids
 
 l1 = PlotLine.new
 l1.title = "In traffic"
@@ -56,16 +52,17 @@ l2.multiplier = 8
 l2.use_long_title = true
 
 ex = RTGExtractor.new
-in_t, out_t = ex.traffic_data(router_id, interface_id, secs)
-in_t.each { |d| l1 << d }
-out_t.each { |d| l2 << d }
-
+rows = ex.traffic_data_added ids, secs
+rows.each do |time, in_o, out_o|
+  l1 << [ time, in_o ]
+  l2 << [ time, out_o ]
+end
 p << l1
 p << l2
 
-hostname = ex.router_name(router_id)
-interface_name, interface_descr = ex.interface_name_descr(router_id, interface_id)
-p.title = "#{hostname} #{interface_name} (#{interface_descr})" if p.title.nil?
+#hostname = ex.router_name router_id
+#interface_name, interface_descr = ex.interface_name_descr router_id, interface_id
+# p.title = "#{hostname} #{interface_name} (#{interface_descr})" if p.title.nil?
 
 puts "Content-type: image/png\n\n"
 puts p.png
