@@ -4,8 +4,8 @@ require 'yaml'
 
 class RTGExtractor
   def traffic_data(rid, iid, secs)
-    in_octets = averaged_rate "ifInOctets", rid, iid, secs, 300
-    out_octets = averaged_rate "ifOutOctets", rid, iid, secs, 300
+    in_octets = averaged_rate "ifInOctets", rid, iid, secs, conf['average_seconds']
+    out_octets = averaged_rate "ifOutOctets", rid, iid, secs, conf['average_seconds']
     return [ in_octets, out_octets ]
   end
 
@@ -36,7 +36,10 @@ class RTGExtractor
   end
 
   def connection
-    @dbconf ||= YAML.load_file('rtgextractor.cfg')
-    @connection ||= Mysql::new @dbconf['host'], @dbconf['user'], @dbconf['pass'], @dbconf['database']
+    @connection ||= Mysql::new conf['host'], conf['user'], conf['pass'], conf['database']
+  end
+
+  def conf
+    @conf ||= YAML.load_file('rtgextractor.cfg')
   end
 end

@@ -5,3 +5,8 @@ database: rtg
 pass: password
 host: dbhost
 user: username
+
+# What interval to aggregate measurements in?
+# This should be at least as large as the polling interval,
+# but can be larger to give a less granular view.
+average_seconds: 300
