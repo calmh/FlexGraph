@@ -1,14 +1,14 @@
 #!/usr/bin/env ruby
 
-require 'gnuplotter'
-require 'nqaextractor'
+require 'lib/gnuplotter'
+require 'extractor/nqa'
 require 'cgi'
 
 cgi = CGI.new
 
 ids = cgi.params['id'][0].split('p').map { |e| e.split(':').map(&:to_i) }
 
-title = cgi.params['title'][0]
+title = cgi.params['title'][0] || 'NQA results'
 
 if cgi.params.include? 'secs'
   secs = cgi.params['secs'][0].to_i
@@ -20,26 +20,25 @@ handle_ids = ids[0]
 
 t = PlotTheme.new
 t.line_width = 1
-t.line_colors << "#00a0e1"
 t.line_colors << "#eb690b"
+t.line_colors << "#00a0e1"
 t.line_colors << "#97bf0d"
 t.line_colors << "#ff0000"
-#t.line_colors << "#b5007c"
 t.line_style = "fsteps"
 t.background_color = "#ffffff"
 t.plot_background_color = "#202020"
 t.primary_grid_color = "#000000"
 t.secondary_grid_color = "#505050"
+t.font_face = "ttf-liberation/LiberationMono-Regular"
+t.font_size = 8
+t.title_font_face = "ttf-liberation/LiberationSans-Bold"
+t.title_font_size = 11
 
 p = Plot.new
 p.theme = t
 p.title = title if !title.nil?
 p.width = 640
 p.height = 280
-p.font_face = "ttf-liberation/LiberationMono-Regular"
-p.font_size = 8
-p.title_font_face = "ttf-liberation/LiberationSans-Bold"
-p.title_font_size = 11
 
 l1 = PlotLine.new
 l1.title = "Min RTT"

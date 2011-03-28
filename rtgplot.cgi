@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'gnuplotter'
+require 'lib/gnuplotter'
 require 'extractor/rtg'
 require 'cgi'
 
