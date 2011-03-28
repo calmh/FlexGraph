@@ -60,7 +60,7 @@ class PlotLine
   end
 
   def long_title
-    title + " (Max #{format_number(max)}, Average #{format_number(avg)}, 95-percentile #{format_number(pct(95))}, Min #{format_number(min)} #{unit})"
+    title + " (Max: #{format_number(max)}, Avg: #{format_number(avg)}, 95%: #{format_number(pct(95))}, Min: #{format_number(min)} #{unit})"
   end
 
   def plot_command
@@ -190,7 +190,7 @@ class Plot
     cmds << "set format y \"%.1s%c\""
     cmds << "set format y2 \"%.1s%c\""
     cmds << "set grid"
-    cmds << "set key below Right samplen 2"
+    cmds << "set key below Right samplen 2 left reverse"
     if (@title_font_face.nil?)
       cmds << "set title \"#{title}\""
     else
