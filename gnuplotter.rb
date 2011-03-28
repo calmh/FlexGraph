@@ -128,7 +128,7 @@ class Plot
   attr_accessor :theme
   # The title of the graph
   attr_accessor :title
- # Width of graph, in pixels
+  # Width of graph, in pixels
   attr_accessor :width
   # Height of graph, in pixels
   attr_accessor :height
@@ -149,7 +149,7 @@ class Plot
 
     @y1unit ||= line.unit
     if line.unit != @y1unit && @y2unit.nil?
-        @y2unit = line.unit
+      @y2unit = line.unit
     end
 
     if line.unit == @y1unit
@@ -165,16 +165,16 @@ class Plot
 
   def setup_command
     cmds = []
-      if @theme.nil? || @theme.font_face.nil?
-        cmds << "set terminal png small size #{width}, #{height} \\"
-      else
-        cmds << "set terminal png font \"#{@theme.font_face}\" #{@theme.font_size} size #{width}, #{height} \\"
-      end
-      if @theme.nil?
-        cmds << "xffffff x808080 x808080"
-      else
-        cmds << [ @theme.background_color, @theme.primary_grid_color, @theme.secondary_grid_color ].join(' ').gsub('#', 'x')
-      end
+    if @theme.nil? || @theme.font_face.nil?
+      cmds << "set terminal png small size #{width}, #{height} \\"
+    else
+      cmds << "set terminal png font \"#{@theme.font_face}\" #{@theme.font_size} size #{width}, #{height} \\"
+    end
+    if @theme.nil?
+      cmds << "xffffff x808080 x808080"
+    else
+      cmds << [ @theme.background_color, @theme.primary_grid_color, @theme.secondary_grid_color ].join(' ').gsub('#', 'x')
+    end
     height = 0.46 + 0.03 * @lines.length
     cmds << "set yrange [#{y1min * 1.1}:#{y1max * 1.1}]"
     cmds << "set y2range [#{y2min * 1.1}:#{y2max * 1.1}]"
@@ -203,7 +203,7 @@ class Plot
     if !@theme.nil? && !@theme.plot_background_color.nil?
       cmds << "set obj 20 rect from graph 0, graph 0 to graph 1, graph 1 fs solid fc rgb \"#{@theme.plot_background_color}\" behind"
     end
-  cmds.join("\n") + "\n"
+    cmds.join("\n") + "\n"
   end
 
   def end_time
@@ -264,35 +264,35 @@ if __FILE__ == $PROGRAM_NAME
     def test_plotline_should_generate_default_style
       l = PlotLine.new
       cmd = l.plot_command
-      assert_equal('"-" using 1:2', cmd)
+      assert_equal '"-" using 1:2', cmd
     end
 
     def test_plotline_should_have_style
       l = PlotLine.new
       l.style = "steps"
       cmd = l.plot_command
-      assert_equal('"-" using 1:2 with steps', cmd)
+      assert_equal '"-" using 1:2 with steps', cmd
     end
 
     def test_plotline_should_have_title
       l = PlotLine.new
       l.title = "Plot one"
       cmd = l.plot_command
-      assert_equal('"-" using 1:2 title "Plot one"', cmd)
+      assert_equal '"-" using 1:2 title "Plot one"', cmd
     end
 
     def test_plotline_should_have_width
       l = PlotLine.new
       l.width = 2
       cmd = l.plot_command
-      assert_equal('"-" using 1:2 lw 2', cmd)
+      assert_equal '"-" using 1:2 lw 2', cmd
     end
 
     def test_plotline_should_have_color
       l = PlotLine.new
       l.color = "#123456"
       cmd = l.plot_command
-      assert_equal('"-" using 1:2 lt rgb "#123456"', cmd)
+      assert_equal '"-" using 1:2 lt rgb "#123456"', cmd
     end
 
     def test_plotline_should_have_style_title_width_and_color
@@ -310,7 +310,7 @@ if __FILE__ == $PROGRAM_NAME
       l << [ 1000, 10 ]
       l << [ 1300, 20 ]
       l << [ 1600, 30 ]
-      assert_equal("1000 10\n1300 20\n1600 30\ne\n", l.plot_data)
+      assert_equal "1000 10\n1300 20\n1600 30\ne\n", l.plot_data
     end
 
     def test_plotline_should_premultiply_data
@@ -319,7 +319,7 @@ if __FILE__ == $PROGRAM_NAME
       l << [ 1000, 10 ]
       l << [ 1300, 20 ]
       l << [ 1600, 30 ]
-      assert_equal("1000 80\n1300 160\n1600 240\ne\n", l.plot_data)
+      assert_equal "1000 80\n1300 160\n1600 240\ne\n", l.plot_data
     end
 
     def test_plotline_should_keep_track_of_endpoints
@@ -327,15 +327,15 @@ if __FILE__ == $PROGRAM_NAME
       l << [ 1000, 10 ]
       l << [ 1300, 30 ]
       l << [ 1600, 20 ]
-      assert_equal(1000, l.start_time)
-      assert_equal(1600, l.end_time)
-      assert_equal(10, l.min)
-      assert_equal(30, l.max)
-      assert_equal(20, l.avg)
+      assert_equal 1000, l.start_time
+      assert_equal 1600, l.end_time
+      assert_equal 10, l.min
+      assert_equal 30, l.max
+      assert_equal 20, l.avg
       l.multiplier = 8
-      assert_equal(80, l.min)
-      assert_equal(240, l.max)
-      assert_equal(160, l.avg)
+      assert_equal 80, l.min
+      assert_equal 240, l.max
+      assert_equal 160, l.avg
     end
 
     def test_plot_should_return_two_plot_commands
@@ -346,7 +346,7 @@ if __FILE__ == $PROGRAM_NAME
       p = Plot.new
       p << l1
       p << l2
-      assert_equal("plot \\\n\"-\" using 1:2 axes x1y1, \\\n\"-\" using 1:2 axes x1y1\n", p.plot_command)
+      assert_equal "plot \\\n\"-\" using 1:2 axes x1y1, \\\n\"-\" using 1:2 axes x1y1\n", p.plot_command
     end
 
     def test_plot_should_set_different_axes_labels
@@ -363,7 +363,7 @@ if __FILE__ == $PROGRAM_NAME
       assert_equal 'u2', p.y2unit
     end
 
-     def test_plot_should_return_two_plot_commands_with_different_axes
+    def test_plot_should_return_two_plot_commands_with_different_axes
       l1 = PlotLine.new
       l1 << [ 1, 1 ]
       l1.unit = 'u1'
@@ -373,12 +373,12 @@ if __FILE__ == $PROGRAM_NAME
       p = Plot.new
       p << l1
       p << l2
-      assert_equal("plot \\\n\"-\" using 1:2 axes x1y1, \\\n\"-\" using 1:2 axes x1y2\n", p.plot_command)
+      assert_equal "plot \\\n\"-\" using 1:2 axes x1y1, \\\n\"-\" using 1:2 axes x1y2\n", p.plot_command
     end
 
     def test_theme_shold_return_nil_color_if_there_are_none
       t = PlotTheme.new
-      assert_equal(nil, t.line_color(42))
+      assert_nil t.line_color(42)
     end
 
     def test_theme_should_iterate_over_colors
@@ -386,9 +386,9 @@ if __FILE__ == $PROGRAM_NAME
       t.line_colors << "#000000"
       t.line_colors << "#111111"
       t.line_colors << "#222222"
-      assert_equal("#111111", t.line_color(1))
-      assert_equal("#222222", t.line_color(5))
-      assert_equal("#000000", t.line_color(9))
+      assert_equal "#111111", t.line_color(1)
+      assert_equal "#222222", t.line_color(5)
+      assert_equal "#000000", t.line_color(9)
     end
 
     def test_plot_should_return_two_themed_plot_commands
@@ -403,7 +403,7 @@ if __FILE__ == $PROGRAM_NAME
       p << l1
       p << l2
       p.theme = t
-      assert_equal("plot \\\n\"-\" using 1:2 axes x1y1 lt rgb \"#000000\", \\\n\"-\" using 1:2 axes x1y1 lt rgb \"#111111\"\n", p.plot_command)
+      assert_equal "plot \\\n\"-\" using 1:2 axes x1y1 lt rgb \"#000000\", \\\n\"-\" using 1:2 axes x1y1 lt rgb \"#111111\"\n", p.plot_command
     end
   end
 end
