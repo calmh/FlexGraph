@@ -175,8 +175,8 @@ class Plot
       cmds << [ @theme.background_color, @theme.primary_grid_color, @theme.secondary_grid_color ].join(' ').gsub('#', 'x')
     end
     height = 0.46 + 0.03 * @lines.length
-    cmds << "set yrange [#{y1min * 1.1}:#{y1max * 1.1}]"
-    cmds << "set y2range [#{y2min * 1.1}:#{y2max * 1.1}]"
+    cmds << "set yrange [#{y1min * 1.1}:#{y1max * 1.1 + 1}]"
+    cmds << "set y2range [#{y2min * 1.1}:#{y2max * 1.1 + 1}]"
     cmds << "set lmargin 10"
     if @y2unit.nil?
       cmds << "set rmargin 2"
