@@ -34,8 +34,8 @@ class PlotLine
 
   def <<(value)
     @data << value
-    @max = [ @max, value[1] ].compact.max
-    @min = [ @min, value[1] ].compact.min
+    @max = [ @max, value[1..-1] ].flatten.compact.max
+    @min = [ @min, value[1..-1] ].flatten.compact.min
     @start_time = [ @start_time, value[0] ].compact.min
     @end_time = [ @end_time, value[0] ].compact.max
   end
@@ -63,8 +63,12 @@ class PlotLine
     title + " (Max: #{format_number(max)}, Avg: #{format_number(avg)}, 95%: #{format_number(pct(95))}, Min: #{format_number(min)} #{unit})"
   end
 
+  def column_expression
+    (1..@data[0].length).to_a.join ":"
+  end
+
   def plot_command
-    cmd = "\"-\" using 1:2"
+    cmd = "\"-\" using " + column_expression
     cmd += " axes #{axes}" if !axes.nil?
     cmd += " with #{style}" if !style.nil?
     if use_long_title
@@ -78,7 +82,8 @@ class PlotLine
   end
 
   def plot_data
-    @data.map{ |d| d[0].to_s + " " + (multiplier * d[1]).to_s + "\n" }.join + "e\n"
+    @data.map{ |d| d[0].to_s + " " + (d[1..-1].map{ |x| multiplier * x }.join " ") + "\n" }.join + "e\n"
+    #@data.map{ |d| d[0].to_s + " " + (multiplier * d[1]).to_s + "\n" }.join + "e\n"
   end
 
   private
@@ -262,12 +267,14 @@ if __FILE__ == $PROGRAM_NAME
   class TestAggregator < Test::Unit::TestCase
     def test_plotline_should_generate_default_style
       l = PlotLine.new
+      l << [ 0, 0 ]
       cmd = l.plot_command
       assert_equal '"-" using 1:2', cmd
     end
 
     def test_plotline_should_have_style
       l = PlotLine.new
+      l << [ 0, 0 ]
       l.style = "steps"
       cmd = l.plot_command
       assert_equal '"-" using 1:2 with steps', cmd
@@ -275,6 +282,7 @@ if __FILE__ == $PROGRAM_NAME
 
     def test_plotline_should_have_title
       l = PlotLine.new
+      l << [ 0, 0 ]
       l.title = "Plot one"
       cmd = l.plot_command
       assert_equal '"-" using 1:2 title "Plot one"', cmd
@@ -282,6 +290,7 @@ if __FILE__ == $PROGRAM_NAME
 
     def test_plotline_should_have_width
       l = PlotLine.new
+      l << [ 0, 0 ]
       l.width = 2
       cmd = l.plot_command
       assert_equal '"-" using 1:2 lw 2', cmd
@@ -289,6 +298,7 @@ if __FILE__ == $PROGRAM_NAME
 
     def test_plotline_should_have_color
       l = PlotLine.new
+      l << [ 0, 0 ]
       l.color = "#123456"
       cmd = l.plot_command
       assert_equal '"-" using 1:2 lt rgb "#123456"', cmd
@@ -296,6 +306,7 @@ if __FILE__ == $PROGRAM_NAME
 
     def test_plotline_should_have_style_title_width_and_color
       l = PlotLine.new
+      l << [ 0, 0 ]
       l.style = "steps"
       l.title = "Plot one"
       l.color = "#123456"
