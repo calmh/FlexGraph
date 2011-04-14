@@ -44,9 +44,9 @@ t.line_colors << "#00a0e1"
 t.line_colors << "#97bf0d"
 t.line_colors << "#b5007c"
 if old == 1
-t.line_style = "fsteps"
+  t.line_style = "fsteps"
 else
-t.line_style = "filledcurve y1=0"
+  t.line_style = "filledcurve y1=0"
 end
 t.background_color = "#ffffff"
 t.plot_background_color = "#f0f0f0"
@@ -71,26 +71,29 @@ p.title = title
 p.width = width
 p.height = height
 
+fake_steps = (old == 0)
 l1 = PlotLine.new
 l1.title = "In traffic"
 l1.unit = "bps"
 l1.multiplier = 8 # RTG returns bytes/s
 l1.use_long_title = long_title
+l1.fake_steps = fake_steps
 
 l2 = PlotLine.new
 l2.title = "Out traffic"
 l2.unit = "bps"
 l2.multiplier = 8
 l2.use_long_title = long_title
+l2.fake_steps = fake_steps
 
 ex = RTGExtractor.new
 rows = ex.traffic_data_added ids, secs
 rows.each do |time, in_o, out_o|
   l1 << [ time, in_o ]
   if old == 1
-  l2 << [ time, out_o ]
+    l2 << [ time, out_o ]
   else
-  l2 << [ time, -out_o ]
+    l2 << [ time, -out_o ]
   end
 end
 p << l1

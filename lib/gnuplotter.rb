@@ -8,9 +8,9 @@ class PlotLine
   # An RGB color on the form '#aabbcc'.
   # Leave this at nil (default) to use theme colors when plotting.
   attr_accessor :color
-  # Line width in pixels.
-  # Leave this at nil (default) to use theme width when plotting.
-  attr_accessor :width
+    # Line width in pixels.
+    # Leave this at nil (default) to use theme width when plotting.
+    attr_accessor :width
   # Plot style.
   # Leave this at nil (default) to use theme style when plotting.
   attr_accessor :style
@@ -26,10 +26,13 @@ class PlotLine
   attr_accessor :axes
   # Whether to use long title (with max/min etc) or not. Defaults to not.
   attr_accessor :use_long_title
+  # Whether to add extra data points to simulate gnuplot "fstep" when drawing with lines.
+  attr_accessor :fake_steps
 
   def initialize
     @multiplier = 1
     @data = []
+    @fake_steps = false
   end
 
   def <<(value)
@@ -86,7 +89,20 @@ class PlotLine
     if @data.empty?
       return "0 0\ne\n"
     else
-    @data.map{ |d| d[0].to_s + " " + (d[1..-1].map{ |x| multiplier * x }.join " ") + "\n" }.join + "e\n"
+      if fake_steps
+        prevrow = nil
+        result = []
+        @data.map do |row|
+          if !prevrow.nil?
+            result << row[0].to_s + " " + (prevrow[1..-1].map{ |x| multiplier * x }.join " ") + "\n"
+            result << row[0].to_s + " " + (row[1..-1].map{ |x| multiplier * x }.join " ") + "\n"
+          end
+          prevrow = row
+        end
+        return result.join + "e\n"
+      else
+      @data.map{ |d| d[0].to_s + " " + (d[1..-1].map{ |x| multiplier * x }.join " ") + "\n" }.join + "e\n"
+      end
     end
   end
 
@@ -104,12 +120,12 @@ class PlotTheme
   attr_accessor :line_width
   attr_accessor :line_style
   attr_accessor :background_color
-  attr_accessor :plot_background_color
-  attr_accessor :primary_grid_color
-  attr_accessor :secondary_grid_color
-  # Font face name. The font file needs to reside in GDFONTPATH for this to work.
-  #  font_face = "LiberationSans-Regular"
-  attr_accessor :font_face
+    attr_accessor :plot_background_color
+    attr_accessor :primary_grid_color
+    attr_accessor :secondary_grid_color
+    # Font face name. The font file needs to reside in GDFONTPATH for this to work.
+    #  font_face = "LiberationSans-Regular"
+    attr_accessor :font_face
   # Font size (points)
   attr_accessor :font_size
   # Font face name. The font file needs to reside in GDFONTPATH for this to work.
@@ -187,19 +203,28 @@ class Plot
     cmds << "set xdata time"
     cmds << "set timefmt \"%s\""
     cmds << "set xrange [#{start_time - 946684800}:#{end_time - 946684800 + 1}]"
+    cmds << "set format x \"%d/%m\\n%H:%M\""
+
     ten_pct = (y1max - y1min) * 0.1
     cmds << "set yrange [#{y1min - ten_pct}:#{y1max + ten_pct + 1}]"
-    ten_pct = (y2max - y2min) * 0.1
-    cmds << "set y2range [#{y2min - ten_pct}:#{y2max + ten_pct + 1}]"
+    cmds << "set format y \"%.1s%c\""
+    cmds << "set ylabel \"#{@y1unit}\""
+    cmds << "set ytics nomirror"
+
+    if y2max != y2min
+      ten_pct = (y2max - y2min) * 0.1
+      cmds << "set y2range [#{y2min - ten_pct}:#{y2max + ten_pct + 1}]"
+      cmds << "set format y2 \"%.1s%c\""
+    cmds << "set y2label \"#{@y2unit}\""
+    cmds << "set y2tics"
+    end
+
     cmds << "set lmargin 10"
     if @y2unit.nil?
       cmds << "set rmargin 2"
     else
       cmds << "set rmargin 10"
     end
-    cmds << "set format x \"%d/%m\\n%H:%M\""
-    cmds << "set format y \"%.1s%c\""
-    cmds << "set format y2 \"%.1s%c\""
     cmds << "set grid"
     cmds << "set style fill solid 0.25 border"
     cmds << "set key below Right samplen 2 left reverse"
@@ -208,10 +233,6 @@ class Plot
     else
       cmds << "set title \"#{title}\" font \"#{@theme.title_font_face}, #{@theme.title_font_size}\""
     end
-    cmds << "set ylabel \"#{@y1unit}\""
-    cmds << "set y2label \"#{@y2unit}\""
-    cmds << "set ytics nomirror"
-    cmds << "set y2tics"
     if !@theme.nil? && !@theme.plot_background_color.nil?
       cmds << "set obj 20 rect from graph 0, graph 0 to graph 1, graph 1 fs solid fc rgb \"#{@theme.plot_background_color}\" behind"
     end
@@ -220,7 +241,7 @@ class Plot
 
   def end_time
     begin
-    @lines.map{ |l| l.end_time }.sort.reverse[0]
+      @lines.map{ |l| l.end_time }.sort.reverse[0]
     rescue
       return 0
     end
@@ -228,7 +249,7 @@ class Plot
 
   def start_time
     begin
-    @lines.map{ |l| l.start_time }.sort[0]
+      @lines.map{ |l| l.start_time }.sort[0]
     rescue
       return 0
     end
@@ -261,8 +282,8 @@ class Plot
   def png
     io = IO.popen "gnuplot", "r+"
     io.puts setup_command
-    io.puts plot_command
-    io.puts plot_data
+      io.puts plot_command
+      io.puts plot_data
     io.close_write
     return io.read
   end
@@ -285,7 +306,7 @@ if __FILE__ == $PROGRAM_NAME
       l = PlotLine.new
       l << [ 0, 0 ]
       cmd = l.plot_command
-      assert_equal '"-" using 1:2', cmd
+        assert_equal '"-" using 1:2', cmd
     end
 
     def test_plotline_should_have_style
@@ -293,7 +314,7 @@ if __FILE__ == $PROGRAM_NAME
       l << [ 0, 0 ]
       l.style = "steps"
       cmd = l.plot_command
-      assert_equal '"-" using 1:2 with steps', cmd
+        assert_equal '"-" using 1:2 with steps', cmd
     end
 
     def test_plotline_should_have_title
@@ -301,7 +322,7 @@ if __FILE__ == $PROGRAM_NAME
       l << [ 0, 0 ]
       l.title = "Plot one"
       cmd = l.plot_command
-      assert_equal '"-" using 1:2 title "Plot one"', cmd
+        assert_equal '"-" using 1:2 title "Plot one"', cmd
     end
 
     def test_plotline_should_have_width
@@ -309,7 +330,7 @@ if __FILE__ == $PROGRAM_NAME
       l << [ 0, 0 ]
       l.width = 2
       cmd = l.plot_command
-      assert_equal '"-" using 1:2 lw 2', cmd
+        assert_equal '"-" using 1:2 lw 2', cmd
     end
 
     def test_plotline_should_have_color
@@ -317,7 +338,7 @@ if __FILE__ == $PROGRAM_NAME
       l << [ 0, 0 ]
       l.color = "#123456"
       cmd = l.plot_command
-      assert_equal '"-" using 1:2 lt rgb "#123456"', cmd
+        assert_equal '"-" using 1:2 lt rgb "#123456"', cmd
     end
 
     def test_plotline_should_have_style_title_width_and_color
@@ -328,7 +349,7 @@ if __FILE__ == $PROGRAM_NAME
       l.color = "#123456"
       l.width = 2
       cmd = l.plot_command
-      assert_equal('"-" using 1:2 with steps title "Plot one" lw 2 lt rgb "#123456"', cmd)
+        assert_equal('"-" using 1:2 with steps title "Plot one" lw 2 lt rgb "#123456"', cmd)
     end
 
     def test_plotline_should_return_data
