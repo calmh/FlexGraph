@@ -58,7 +58,25 @@ class RTGExtractor
     return nil
   end
 
-  def connection
+  def list_routers
+    res = connection.query "SELECT name, rid FROM router ORDER BY name"
+    routers = []
+    res.each do |row|
+      routers << { :name => row[0], :rid => row[1].to_i }
+    end
+    return routers
+   end
+
+  def list_interfaces(rid)
+    res = connection.query "SELECT id, name, status, description, speed FROM interface WHERE rid = #{rid} ORDER BY name, description"
+    interfaces = []
+    res.each do |row|
+      interfaces << { :id => row[0].to_i, :name => row[1], :status => row[2], :description => row[3], :speed => row[4].to_i }
+    end
+    return interfaces
+   end
+
+   def connection
     @connection ||= Mysql::new conf['host'], conf['user'], conf['pass'], conf['database']
   end
 

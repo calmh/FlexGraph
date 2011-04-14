@@ -41,11 +41,11 @@ class PlotLine
   end
 
   def min
-    @min * multiplier
+    (@min || 0) * multiplier
   end
 
   def max
-    @max * multiplier
+    (@max || 0) * multiplier
   end
 
   def avg
@@ -64,6 +64,7 @@ class PlotLine
   end
 
   def column_expression
+    return "1:2" if @data.length == 0
     (1..@data[0].length).to_a.join ":"
   end
 
@@ -82,16 +83,19 @@ class PlotLine
   end
 
   def plot_data
+    if @data.empty?
+      return "0 0\ne\n"
+    else
     @data.map{ |d| d[0].to_s + " " + (d[1..-1].map{ |x| multiplier * x }.join " ") + "\n" }.join + "e\n"
-    #@data.map{ |d| d[0].to_s + " " + (multiplier * d[1]).to_s + "\n" }.join + "e\n"
+    end
   end
 
   private
   def format_number(num)
-    return "%5.02fG"%(num / 1e9) if num > 1e9
-    return "%5.01fM"%(num / 1e6) if num > 1e6
-    return "%5.01fK"%(num / 1e3) if num > 1e5
-    return "%6.0f"%num
+    return "%6.02fG"%(num / 1e9) if num.abs > 1e9
+    return "%6.01fM"%(num / 1e6) if num.abs > 1e6
+    return "%6.01fK"%(num / 1e3) if num.abs > 1e5
+    return "%7.0f"%num
   end
 end
 
@@ -180,20 +184,24 @@ class Plot
       cmds << [ @theme.background_color, @theme.primary_grid_color, @theme.secondary_grid_color ].join(' ').gsub('#', 'x')
     end
     height = 0.46 + 0.03 * @lines.length
-    cmds << "set yrange [#{y1min * 1.1}:#{y1max * 1.1 + 1}]"
-    cmds << "set y2range [#{y2min * 1.1}:#{y2max * 1.1 + 1}]"
+    cmds << "set xdata time"
+    cmds << "set timefmt \"%s\""
+    cmds << "set xrange [#{start_time - 946684800}:#{end_time - 946684800 + 1}]"
+    ten_pct = (y1max - y1min) * 0.1
+    cmds << "set yrange [#{y1min - ten_pct}:#{y1max + ten_pct + 1}]"
+    ten_pct = (y2max - y2min) * 0.1
+    cmds << "set y2range [#{y2min - ten_pct}:#{y2max + ten_pct + 1}]"
     cmds << "set lmargin 10"
     if @y2unit.nil?
       cmds << "set rmargin 2"
     else
       cmds << "set rmargin 10"
     end
-    cmds << "set timefmt \"%s\""
-    cmds << "set xdata time"
     cmds << "set format x \"%d/%m\\n%H:%M\""
     cmds << "set format y \"%.1s%c\""
     cmds << "set format y2 \"%.1s%c\""
     cmds << "set grid"
+    cmds << "set style fill solid 0.25 border"
     cmds << "set key below Right samplen 2 left reverse"
     if @theme.nil? || @theme.title_font_face.nil?
       cmds << "set title \"#{title}\""
@@ -211,11 +219,19 @@ class Plot
   end
 
   def end_time
+    begin
     @lines.map{ |l| l.end_time }.sort.reverse[0]
+    rescue
+      return 0
+    end
   end
 
   def start_time
+    begin
     @lines.map{ |l| l.start_time }.sort[0]
+    rescue
+      return 0
+    end
   end
 
   # Sets the first unit found on x1y1, all others on x1y2
@@ -346,6 +362,21 @@ if __FILE__ == $PROGRAM_NAME
       assert_equal 80, l.min
       assert_equal 240, l.max
       assert_equal 160, l.avg
+    end
+
+    def test_plot_should_keep_track_of_endpoints
+      l1 = PlotLine.new
+      l1 << [ 1000, 10 ]
+      l1 << [ 1300, 30 ]
+      l2 = PlotLine.new
+      l2 << [ 1100, 15 ]
+      l2 << [ 1400, 35 ]
+      l2 << [ 1700, 25 ]
+      p = Plot.new
+      p << l1
+      p << l2
+      assert_equal 1000, p.start_time
+      assert_equal 1700, p.end_time
     end
 
     def test_plot_should_return_two_plot_commands

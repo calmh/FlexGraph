@@ -11,7 +11,7 @@ user: username
 # as close to `desired_datapoints` datapoints as possible.
 # I.e. a one hour view will use 60 second averages, while
 # a one day view will use 300 second averages.
-desired_datapoints: 300
+desired_datapoints: 350
 averaging_intervals:
  - 60
  - 120
@@ -20,3 +20,5 @@ averaging_intervals:
  - 900
  - 1800
  - 3600
+ - 7200
+ - 10800
