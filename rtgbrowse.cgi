@@ -33,6 +33,28 @@ div.router {
 }
 </style>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+<script type="text/javascript">
+filter = function(text) {
+  if (text == "") {
+    $('.filterable').show();
+  } else {
+    $(".filterable[id!='" + text + "']").hide();
+    $(".filterable[id*='" + text + "']").show();
+  }
+}
+
+$(document).ready(function() {
+  if ($('.filterable').length > 0) {
+    var sb = $('#search')
+    sb.keyup(function() {
+      filter(sb.val());
+    });
+    filter(sb.val());
+    $('#searchbox').show();
+    sb.focus();
+    }
+});
+</script>
 </head>
 <body>
 <form id="searchbox" style="display: none">
@@ -48,7 +70,7 @@ old = cgi.params['old'][0].to_i
 ex = RTGExtractor.new
 
 if !iid.nil? && iid != 0 && !rid.nil? && rid != 0
-  router = ex.router_name rid
+ router = ex.router_name rid
   intf = ex.interface_name_descr(rid, iid).join(" ")
   [ 14400, 86400, 86400*7, 86400*30 ].each do |interval|
     puts "<div class='interface'>"
@@ -58,38 +80,18 @@ if !iid.nil? && iid != 0 && !rid.nil? && rid != 0
 elsif !rid.nil? && rid != 0
   router = ex.router_name rid
   puts "<h1>#{router}</h1>"
-  ex.list_interfaces(rid).each do |intf|
+   ex.list_interfaces(rid).each do |intf|
     next if intf[:status] != 'active'
     next if intf[:speed] == 0
-    puts "<div class='interface'>"
+    puts "<div class='interface filterable' id='#{intf[:name]} #{intf[:description]}'>"
     puts "<a href='?rid=#{rid}&iid=#{intf[:id]}&old=#{old}'>"
     puts "<img src='rtgplot.cgi?w=400&h=200&id=#{rid}:#{intf[:id]}&title=#{intf[:name]}+#{intf[:description]}&secs=43200&old=#{old}' />"
     puts "</a>"
     puts "</div>"
   end
 else
-  puts <<SCRIPT
-<script type="text/javascript">
-filter = function(text) {
-  if (text == "") {
-    $(".router").show();
-  } else {
-    $(".router[id!='" + text + "']").hide();
-    $(".router[id*='" + text + "']").show();
-  }
-}
-$(document).ready(function() {
-  $('#search').keyup(function() {
-    filter($(this).val());
-  });
-  $('#searchbox').show();
-  filter($('#search').val());
-});
-</script>
-SCRIPT
-
   ex.list_routers.each do |router|
-    puts "<div class='router' id='#{router[:name]}'><a href='?rid=#{router[:rid]}&old=#{old}'>#{router[:name]}</a></div>"
+    puts "<div class='router filterable' id='#{router[:name]}'><a href='?rid=#{router[:rid]}&old=#{old}'>#{router[:name]}</a></div>"
   end
 end
 
