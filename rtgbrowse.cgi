@@ -10,17 +10,34 @@ puts <<HEADER
 <html>
 <head>
 <style type='text/css'>
+body {
+  font-family: Calibri, Helvetica, sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+a img {
+  border: none;
+}
+
 div.interface {
   float: left;
 }
+
 div.router {
   float: left;
   padding: 2px;
   width: 12em;
 }
 </style>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 </head>
 <body>
+<form id="searchbox" style="display: none">
+<p>Substring filter: <input type="text" name="search" id="search"></input></p>
+</form>
 HEADER
 
 cgi = CGI.new
@@ -51,8 +68,28 @@ elsif !rid.nil? && rid != 0
     puts "</div>"
   end
 else
+  puts <<SCRIPT
+<script type="text/javascript">
+filter = function(text) {
+  if (text == "") {
+    $(".router").show();
+  } else {
+    $(".router[id!='" + text + "']").hide();
+    $(".router[id*='" + text + "']").show();
+  }
+}
+$(document).ready(function() {
+  $('#search').keyup(function() {
+    filter($(this).val());
+  });
+  $('#searchbox').show();
+  filter($('#search').val());
+});
+</script>
+SCRIPT
+
   ex.list_routers.each do |router|
-    puts "<div class='router'><a href='?rid=#{router[:rid]}&old=#{old}'>#{router[:name]}</a></div>"
+    puts "<div class='router' id='#{router[:name]}'><a href='?rid=#{router[:rid]}&old=#{old}'>#{router[:name]}</a></div>"
   end
 end
 
