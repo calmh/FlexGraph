@@ -74,7 +74,7 @@ if !iid.nil? && iid != 0 && !rid.nil? && rid != 0
   # Display single interface with different time scales
   router = ex.router_name rid
   intf = ex.interface_name_descr(rid, iid).join(" ")
-  [ 14400, 86400, 86400*7, 86400*30 ].each do |interval|
+  [ 14400, 86400, 86400*7, 86400*30, 86400*365 ].each do |interval|
     puts "<div class='interface'>"
     puts "<img src='rtgplot.cgi?id=#{rid}:#{iid}&title=#{router}+#{intf}&secs=#{interval}&old=#{old}' />"
     puts "</div>"
@@ -88,14 +88,14 @@ elsif !rid.nil? && rid != 0
   # i.e. GigabitEthernet1/0/2 before GigabitEthernet1/0/10
   intf_list = []
   ex.list_interfaces(rid).each do |intf|
+    next if intf[:status] != 'active'
+    next if intf[:speed] == 0
     name_split = intf[:name].gsub(/\s+/, ' ').split(/\b/).map { |x| (x.to_i if x =~ /^\d+$/) or x }
     intf_list << [ name_split, intf ]
   end
   intf_list.sort!
 
   intf_list.each do |intf_name_split, intf|
-    next if intf[:status] != 'active'
-    next if intf[:speed] == 0
     puts "<div class='interface filterable' id='#{intf[:name]} #{intf[:description]}'>"
     puts "<a href='?rid=#{rid}&iid=#{intf[:id]}&old=#{old}'>"
     puts "<img src='rtgplot.cgi?w=400&h=200&id=#{rid}:#{intf[:id]}&title=#{intf[:name]}+#{intf[:description]}&secs=43200&old=#{old}' />"
