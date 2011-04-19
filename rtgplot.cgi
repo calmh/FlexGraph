@@ -83,6 +83,9 @@ l2 = PlotLine.new
 l2.title = "Out traffic"
 l2.unit = "bps"
 l2.multiplier = 8
+if old == 0
+  l2.multiplier = -l2.multiplier
+end
 l2.use_long_title = long_title
 l2.fake_steps = fake_steps
 
@@ -90,11 +93,7 @@ ex = RTGExtractor.new
 rows = ex.traffic_data_added ids, secs
 rows.each do |time, in_o, out_o|
   l1 << [ time, in_o ]
-  if old == 1
-    l2 << [ time, out_o ]
-  else
-    l2 << [ time, -out_o ]
-  end
+  l2 << [ time, out_o ]
 end
 p << l1
 p << l2

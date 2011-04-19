@@ -178,8 +178,8 @@ class Plot
 
     if line.unit == @y1unit
       line.axes = 'x1y1'
-      @y1min = [ 0, @y1min, line.min ].min
-      @y1max = [ @y1max, line.max ].max
+      @y1min = [ 0, @y1min, line.min, line.max ].min
+      @y1max = [ @y1max, line.min, line.max ].max
     else
       line.axes = 'x1y2'
       @y2min = [ 0, @y2min, line.min ].min
@@ -466,6 +466,26 @@ if __FILE__ == $PROGRAM_NAME
       p << l2
       p.theme = t
       assert_equal "plot \\\n\"-\" using 1:2 axes x1y1 lt rgb \"#000000\", \\\n\"-\" using 1:2 axes x1y1 lt rgb \"#111111\"\n", p.plot_command
+    end
+
+    def test_plot_line_should_handle_multiplier
+      l1 = PlotLine.new
+      l1 << [ 1, 1 ]
+      l1 << [ 2, 4 ]
+      l1.multiplier = 8
+      assert_equal 8, l1.min
+      assert_equal 32, l1.max
+      assert_equal 32, l1.pct(95)
+    end
+
+    def test_plot_line_should_handle_multiplier
+      l1 = PlotLine.new
+      l1 << [ 1, 1 ]
+      l1 << [ 2, 4 ]
+      l1.multiplier = -8
+      assert_equal -8, l1.min
+      assert_equal -32, l1.max
+      assert_equal -32, l1.pct(95)
     end
   end
 end
