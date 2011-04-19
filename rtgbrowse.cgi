@@ -55,6 +55,7 @@ $(document).ready(function() {
     }
 });
 </script>
+<title>RTG Browser</title>
 </head>
 <body>
 <form id="searchbox" style="display: none">
@@ -70,7 +71,8 @@ old = cgi.params['old'][0].to_i
 ex = RTGExtractor.new
 
 if !iid.nil? && iid != 0 && !rid.nil? && rid != 0
- router = ex.router_name rid
+  # Display single interface with different time scales
+  router = ex.router_name rid
   intf = ex.interface_name_descr(rid, iid).join(" ")
   [ 14400, 86400, 86400*7, 86400*30 ].each do |interval|
     puts "<div class='interface'>"
@@ -78,9 +80,20 @@ if !iid.nil? && iid != 0 && !rid.nil? && rid != 0
     puts "</div>"
   end
 elsif !rid.nil? && rid != 0
+  # Display all interfaces on a router
   router = ex.router_name rid
   puts "<h1>#{router}</h1>"
-   ex.list_interfaces(rid).each do |intf|
+
+  # Sort the interface list as numerically as possible
+  # i.e. GigabitEthernet1/0/2 before GigabitEthernet1/0/10
+  intf_list = []
+  ex.list_interfaces(rid).each do |intf|
+    name_split = intf[:name].gsub(/\s+/, ' ').split(/\b/).map { |x| (x.to_i if x =~ /^\d+$/) or x }
+    intf_list << [ name_split, intf ]
+  end
+  intf_list.sort!
+
+  intf_list.each do |intf_name_split, intf|
     next if intf[:status] != 'active'
     next if intf[:speed] == 0
     puts "<div class='interface filterable' id='#{intf[:name]} #{intf[:description]}'>"
@@ -90,6 +103,7 @@ elsif !rid.nil? && rid != 0
     puts "</div>"
   end
 else
+  # List all routers
   ex.list_routers.each do |router|
     puts "<div class='router filterable' id='#{router[:name]}'><a href='?rid=#{router[:rid]}&old=#{old}'>#{router[:name]}</a></div>"
   end
