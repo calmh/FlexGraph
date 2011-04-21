@@ -1,7 +1,0 @@
-# Don't touch this first line with three dashes.
---- 
-# Modify these to suit your enviroment.
-database: nqa
-pass: password
-host: dbhost
-user: username
