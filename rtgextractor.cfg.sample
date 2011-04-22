@@ -6,6 +6,16 @@ pass: password
 host: dbhost
 user: username
 
+# If your database time zone differs from your display time
+# zone, change these. Only the difference betweehn the time
+# zones is relevant, so leave both at +00:00 if your database
+# and display time zones are the same.
+#
+# You can use symbolic time zone names if you have loaded them,
+# see: http://dev.mysql.com/doc/refman/5.5/en/time-zone-support.html
+db_timezone: +00:00
+display_timezone: +00:00
+
 # What interval to aggregate measurements in?
 # We will use one of the `averaging_intervals` to generate
 # as close to `desired_datapoints` datapoints as possible.

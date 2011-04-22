@@ -10,6 +10,12 @@ def searchbox
   </form>'
 end
 
+def aggrlink
+  '<div id="aggrlink" style="display: none">
+  <a href="#">View the aggregate of these graphs</a>
+  </div>'
+end
+
 $title = nil
 def title(t)
   $title = t
@@ -29,7 +35,6 @@ def matches(description, routers)
     descr_split = description.split /\b/
     descr_split.each do |possibility|
       if routers.include? possibility
-        # matches << "<a href=?rid=#{routers[possibility][:rid]}>#{possibility}</a>"
         matches << [ possibility, routers[possibility][:rid] ]
       end
     end
@@ -74,6 +79,9 @@ elsif !rid.nil? && rid != 0
   router = ex.router_name rid
   title router
 
+  body "<div class='hide'>"
+  body "<h2>Device Aggregate</h2>"
+
   # Sort the interface list as numerically as possible
   # i.e. GigabitEthernet1/0/2 before GigabitEthernet1/0/10
   intf_list = []
@@ -84,6 +92,11 @@ elsif !rid.nil? && rid != 0
     intf_list << [ name_split, intf ]
   end
   intf_list.sort!
+
+  ids = intf_list.map { |name, intf| rid.to_s + ':' + intf[:id].to_s }.join "+"
+  body "<img src='rtgplot.cgi?id=#{ids}&title=Aggregate+traffic&secs=86400&old=#{old}&only_i=1' />"
+
+  body "<h2>Interfaces</h2>"
 
   # Get list of routers that match any of the interface descriptions
   match_list = []
@@ -98,12 +111,13 @@ elsif !rid.nil? && rid != 0
     body "<p>" + see_also.join(", ") + "</p>"
     body "</div>"
   end
+  body "</div>"
 
   # Present each interface as an overview graph and a link to the full graph page
   intf_list.each do |intf_name_split, intf|
     body "<div class='interface filterable' id='#{intf[:name]} #{intf[:description]}'>"
     body "<a href='?rid=#{rid}&iid=#{intf[:id]}&old=#{old}'>"
-    body "<img src='rtgplot.cgi?w=400&h=200&id=#{rid}:#{intf[:id]}&title=#{intf[:name]}+#{intf[:description]}&secs=43200&old=#{old}' />"
+    body "<img data-plot-id='#{rid}:#{intf[:id]}' src='rtgplot.cgi?w=400&h=200&id=#{rid}:#{intf[:id]}&title=#{intf[:name]}+#{intf[:description]}&secs=43200&old=#{old}' />"
     body "</a>"
     body "</div>"
   end
@@ -160,15 +174,47 @@ div.seealso p {
   margin: 2px;
 }
 
+div#aggrlink {
+  padding: 5px;
+  margin: 5px;
+  background: #bbf;
+  border: 1px solid #88f;
+}
+
+div#aggrlink a {
+  color: #00a;
+}
+
 </style>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 <script type="text/javascript">
 filter = function(text) {
   if (text == "") {
     $('.filterable').show();
+    $('.hide').show();
+    $('#aggrlink').hide();
   } else {
     $(".filterable[id!='" + text + "']").hide();
     $(".filterable[id*='" + text + "']").show();
+    $('.hide').hide();
+
+    var aggrs = "";
+    var aggrcount = 0;
+    $(".filterable[id*='" + text + "'] img").each(function() {
+      var id = this.getAttribute('data-plot-id')
+      if (aggrs.length > 0 ) {
+        aggrs += '+';
+      }
+      aggrs += id;
+      aggrcount += 1;
+    });
+
+    if (aggrcount > 1) {
+      $('#aggrlink a').attr('href', 'rtgplot.cgi?id=' + aggrs + '&secs=86400&title=Aggregate+graph+for+' + text);
+      $('#aggrlink').show();
+    } else {
+      $('#aggrlink').hide();
+    }
   }
 }
 
@@ -197,6 +243,7 @@ if !$title.nil?
 end
 puts searchbox
 puts "<div id='content'>"
+puts aggrlink
 puts $body.join "\n"
 puts "</div>"
 puts "</body>"

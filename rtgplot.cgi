@@ -28,6 +28,7 @@ width = (cgi.params['w'][0] || 640).to_i
 height = (cgi.params['h'][0] || 250).to_i
 debug = cgi.params['debug'][0].to_i
 old = cgi.params['old'][0].to_i
+only_i = cgi.params['only_i'][0].to_i
 
 if cgi.params.include? 'secs'
   secs = cgi.params['secs'][0].to_i
@@ -74,6 +75,7 @@ p.height = height
 fake_steps = (old == 0)
 l1 = PlotLine.new
 l1.title = "In traffic"
+l1.title = "Traffic" if only_i != 0
 l1.unit = "bps"
 l1.multiplier = 8 # RTG returns bytes/s
 l1.use_long_title = long_title
@@ -93,10 +95,10 @@ ex = RTGExtractor.new
 rows = ex.traffic_data_added ids, secs
 rows.each do |time, in_o, out_o|
   l1 << [ time, in_o ]
-  l2 << [ time, out_o ]
+  l2 << [ time, out_o ] if only_i != 1
 end
 p << l1
-p << l2
+p << l2 if only_i != 1
 
 if debug == 1
   puts "Content-type: text/plain\n\n"

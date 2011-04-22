@@ -35,7 +35,9 @@ class RTGExtractor
   def averaged_rate(table, rid, iid, secs, interval)
     start = Time.now.to_i - secs
     rows = []
-    res = connection.query "SELECT (CAST(UNIX_TIMESTAMP(dtime) / #{interval.to_i} AS SIGNED)) * #{interval.to_i} AS avgtime, AVG(rate) FROM #{table}_#{rid} WHERE id = #{iid.to_i} AND dtime > FROM_UNIXTIME(#{start.to_i}) GROUP BY avgtime ORDER BY avgtime"
+    db_tz = conf['db_timezone']
+    disp_tz = conf['display_timezone']
+    res = connection.query "SELECT (CAST(UNIX_TIMESTAMP(CONVERT_TZ(dtime, '#{db_tz}', '#{disp_tz}')) / #{interval.to_i} AS SIGNED)) * #{interval.to_i} AS avgtime, AVG(rate) FROM #{table}_#{rid} WHERE id = #{iid.to_i} AND dtime > FROM_UNIXTIME(#{start.to_i}) GROUP BY avgtime ORDER BY avgtime"
     res.each { |r| rows << [ r[0].to_i, r[1].to_i ]}
     return rows
   end
@@ -102,16 +104,20 @@ class RTGExtractor
     while i1 < l1 && i2 < l2
       t1 = ts1[i1][0]
       t2 = ts2[i2][0]
-      ts << [ t1, ts1[i1][1], ts2[i2][1] ] if t1 == t2
       if t1 == t2
+        ts << [ t1, ts1[i1][1], ts2[i2][1] ]
         i1 += 1
         i2 += 1
       elsif t1 < t2
+        ts << [ t1, ts1[i1][1], 0 ]
         i1 += 1
       else
+        ts << [ t2, 0, ts2[i2][1] ]
         i2 += 1
       end
     end
+    ts += ts1[i1..-1].map { |t, v| [ t, v, 0 ] }
+    ts += ts2[i2..-1].map { |t, v| [ t, 0, v ] }
     return ts
   end
 end
@@ -134,21 +140,28 @@ if __FILE__ == $PROGRAM_NAME
       ts1 = [ [ 10, 100 ], [ 15, 150 ], [ 30, 300 ] ]
       ts2 = [ [ 10, 200 ], [ 20, 250 ], [ 30, 350 ] ]
       ts = @ex.tsmerge ts1, ts2
-      assert_equal [ [ 10, 100, 200 ], [ 30, 300, 350 ] ], ts
+      assert_equal [ [ 10, 100, 200 ], [ 15, 150, 0 ], [ 20, 0, 250], [ 30, 300, 350 ] ], ts
     end
   
     def test_tsmerge_should_merge_3
       ts1 = [ [ 10, 100 ], [ 30, 300 ] ]
       ts2 = [ [ 10, 200 ], [ 20, 250 ], [ 30, 350 ] ]
       ts = @ex.tsmerge ts1, ts2
-      assert_equal [ [ 10, 100, 200 ], [ 30, 300, 350 ] ], ts
+      assert_equal [ [ 10, 100, 200 ], [20, 0, 250 ], [ 30, 300, 350 ] ], ts
     end
    
     def test_tsmerge_should_merge_4
       ts1 = [ [ 10, 100 ], [ 20, 250 ], [ 30, 300 ] ]
       ts2 = [ [ 10, 200 ], [ 30, 350 ] ]
       ts = @ex.tsmerge ts1, ts2
-      assert_equal [ [ 10, 100, 200 ], [ 30, 300, 350 ] ], ts
+      assert_equal [ [ 10, 100, 200 ], [ 20, 250, 0 ], [ 30, 300, 350 ] ], ts
+    end
+
+     def test_tsmerge_should_merge_5
+      ts1 = [ [ 10, 100 ], [ 20, 250 ], [ 30, 300 ] ]
+      ts2 = [ ]
+      ts = @ex.tsmerge ts1, ts2
+      assert_equal [ [ 10, 100, 0 ], [ 20, 250, 0 ], [ 30, 300, 0 ] ], ts
     end
   end
 end
