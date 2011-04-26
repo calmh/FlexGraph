@@ -3,30 +3,38 @@ require 'date'
 require 'yaml'
 
 class RTGExtractor
- def traffic_data_added(ids, secs)
-    in_o = nil
-    out_o = nil
-    ids.each do |rid, iid|
-      in_octets = averaged_rate "ifInOctets", rid, iid, secs, period_for_secs(secs)
-      out_octets = averaged_rate "ifOutOctets", rid, iid, secs, period_for_secs(secs)
-
-      if in_o.nil?
-        in_o = in_octets
-      else
-        in_o = tsmerge in_o, in_octets
-        in_o = in_o.map { |x| [ x[0], x[1] + x[2] ] }
-      end
-      if out_o.nil?
-        out_o = out_octets
-      else
-        out_o = tsmerge out_o, out_octets
-        out_o = out_o.map { |x| [ x[0], x[1] + x[2] ] }
-      end
-    end
-    return tsmerge in_o, out_o
+  def traffic_data_added(ids, secs)
+    data_added ids, secs, [ 'ifInOctets' ], [ 'ifOutOctets' ]
   end
 
-   def traffic_data(rid, iid, secs)
+  def traffic_packets_added(ids, secs)
+    data_added ids, secs, [ 'ifHCInMulticastPkts', 'ifInNUcastPkts', 'ifInUcastPkts' ], [ 'ifHCOutMulticastPkts', 'ifOutNUcastPkts', 'ifOutUcastPkts' ]
+  end
+
+  def data_added(ids, secs, in_tables, out_tables)
+    data = []
+    data[0] = nil
+    data[1] = nil
+
+    tables = [ in_tables, out_tables ]
+    [ 0, 1 ].each do |i|
+      tables[i].each do |table|
+        ids.each do |rid, iid|
+          new_data = averaged_rate table, rid, iid, secs, period_for_secs(secs)
+          if data[i].nil?
+            data[i] = new_data
+          else
+            data[i] = tsmerge data[i], new_data
+            data[i] = data[i].map { |x| [ x[0], x[1] + x[2] ] }
+          end
+        end
+      end
+    end
+
+    return tsmerge data[0], data[1]
+  end
+
+  def traffic_data(rid, iid, secs)
     in_octets = averaged_rate "ifInOctets", rid, iid, secs, period_for_secs(secs)
     out_octets = averaged_rate "ifOutOctets", rid, iid, secs, period_for_secs(secs)
     return tsmerge in_octets, out_octets
@@ -67,7 +75,7 @@ class RTGExtractor
       routers << { :name => row[0], :rid => row[1].to_i }
     end
     return routers
-   end
+  end
 
   def list_interfaces(rid)
     res = connection.query "SELECT id, name, status, description, speed FROM interface WHERE rid = #{rid} ORDER BY name, description"
@@ -76,9 +84,9 @@ class RTGExtractor
       interfaces << { :id => row[0].to_i, :name => row[1], :status => row[2], :description => row[3], :speed => row[4].to_i }
     end
     return interfaces
-   end
+  end
 
-   def connection
+  def connection
     @connection ||= Mysql::new conf['host'], conf['user'], conf['pass'], conf['database']
   end
 
@@ -95,7 +103,7 @@ class RTGExtractor
     return intervals.last
   end
 
-   def tsmerge(ts1, ts2)
+  def tsmerge(ts1, ts2)
     l1 = ts1.length
     l2 = ts2.length
     i1 = 0
@@ -135,21 +143,21 @@ if __FILE__ == $PROGRAM_NAME
       ts = @ex.tsmerge ts1, ts2
       assert_equal [ [ 10, 100, 200 ], [ 20, 150, 250 ] ], ts
     end
- 
+
     def test_tsmerge_should_merge_2
       ts1 = [ [ 10, 100 ], [ 15, 150 ], [ 30, 300 ] ]
       ts2 = [ [ 10, 200 ], [ 20, 250 ], [ 30, 350 ] ]
       ts = @ex.tsmerge ts1, ts2
       assert_equal [ [ 10, 100, 200 ], [ 15, 150, 0 ], [ 20, 0, 250], [ 30, 300, 350 ] ], ts
     end
-  
+
     def test_tsmerge_should_merge_3
       ts1 = [ [ 10, 100 ], [ 30, 300 ] ]
       ts2 = [ [ 10, 200 ], [ 20, 250 ], [ 30, 350 ] ]
       ts = @ex.tsmerge ts1, ts2
       assert_equal [ [ 10, 100, 200 ], [20, 0, 250 ], [ 30, 300, 350 ] ], ts
     end
-   
+
     def test_tsmerge_should_merge_4
       ts1 = [ [ 10, 100 ], [ 20, 250 ], [ 30, 300 ] ]
       ts2 = [ [ 10, 200 ], [ 30, 350 ] ]
@@ -157,7 +165,7 @@ if __FILE__ == $PROGRAM_NAME
       assert_equal [ [ 10, 100, 200 ], [ 20, 250, 0 ], [ 30, 300, 350 ] ], ts
     end
 
-     def test_tsmerge_should_merge_5
+    def test_tsmerge_should_merge_5
       ts1 = [ [ 10, 100 ], [ 20, 250 ], [ 30, 300 ] ]
       ts2 = [ ]
       ts = @ex.tsmerge ts1, ts2

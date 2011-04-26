@@ -94,7 +94,8 @@ elsif !rid.nil? && rid != 0
   intf_list.sort!
 
   ids = intf_list.map { |name, intf| rid.to_s + ':' + intf[:id].to_s }.join "+"
-  body "<img src='rtgplot.cgi?id=#{ids}&title=Aggregate+traffic&secs=86400&old=#{old}&only_i=1' />"
+  body "<img src='rtgplot.cgi?w=620&h=200&id=#{ids}&title=Aggregate+traffic&secs=86400&old=#{old}&only_i=1' />"
+  body "<img src='rtgplot.cgi?w=620&h=200&id=#{ids}&title=Aggregate+packets&secs=86400&old=#{old}&only_i=1&type=pps' />"
 
   body "<h2>Interfaces</h2>"
 

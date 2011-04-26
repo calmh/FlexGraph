@@ -28,7 +28,9 @@ width = (cgi.params['w'][0] || 640).to_i
 height = (cgi.params['h'][0] || 250).to_i
 debug = cgi.params['debug'][0].to_i
 old = cgi.params['old'][0].to_i
+fake_steps = (old == 0)
 only_i = cgi.params['only_i'][0].to_i
+type = cgi.params['type'][0]
 
 if cgi.params.include? 'secs'
   secs = cgi.params['secs'][0].to_i
@@ -72,27 +74,43 @@ p.title = title
 p.width = width
 p.height = height
 
-fake_steps = (old == 0)
 l1 = PlotLine.new
-l1.title = "In traffic"
 l1.title = "Traffic" if only_i != 0
-l1.unit = "bps"
-l1.multiplier = 8 # RTG returns bytes/s
 l1.use_long_title = long_title
 l1.fake_steps = fake_steps
+if type == 'pps':
+  l1.title = "In packets"
+  l1.unit = 'pps'
+else
+  l1.title = "In traffic"
+  l1.unit = 'bps'
+  l1.multiplier = 8 # RTG returns bytes/s
+end
 
 l2 = PlotLine.new
 l2.title = "Out traffic"
-l2.unit = "bps"
-l2.multiplier = 8
+l2.use_long_title = long_title
+l2.fake_steps = fake_steps
+if type == 'pps':
+  l2.title = "In packets"
+  l2.unit = 'pps'
+else
+  l2.title = "In traffic"
+  l2.unit = 'bps'
+  l2.multiplier = 8
+end
+
 if old == 0
   l2.multiplier = -l2.multiplier
 end
-l2.use_long_title = long_title
-l2.fake_steps = fake_steps
 
 ex = RTGExtractor.new
-rows = ex.traffic_data_added ids, secs
+if type == 'pps'
+  rows = ex.traffic_packets_added ids, secs
+else
+  rows = ex.traffic_data_added ids, secs
+end
+
 rows.each do |time, in_o, out_o|
   l1 << [ time, in_o ]
   l2 << [ time, out_o ] if only_i != 1
