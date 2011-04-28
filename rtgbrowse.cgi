@@ -91,7 +91,7 @@ elsif !rid.nil? && rid != 0
     # Remove extra spaces, add spaces between characters and numbers (i.e. Ethernet1 -> Ethernet 1)
     name_normalized = intf[:name].gsub(/\s+/, ' ').gsub(/([a-z])([0-9])/i, '\1 \2').gsub(/([0-9])([a-z])/i, '\1 \2')
     # Split on word boundaries into an array, and try to make numeric parts numeric
-    name_split = name_normalized.split(/\b/).map { |x| (x.to_i if x =~ /^\d+$/) or x }
+    name_split = name_normalized.split(/\b/).map { |x| (sprintf("%06d", x.to_i) if x =~ /^\d+$/) or x }
     intf_list << [ name_split, intf ]
   end
   intf_list.sort!
