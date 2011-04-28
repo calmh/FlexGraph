@@ -92,10 +92,10 @@ l2.title = "Out traffic"
 l2.use_long_title = long_title
 l2.fake_steps = fake_steps
 if type == 'pps':
-  l2.title = "In packets"
+  l2.title = "Out packets"
   l2.unit = 'pps'
 else
-  l2.title = "In traffic"
+  l2.title = "Out traffic"
   l2.unit = 'bps'
   l2.multiplier = 8
 end
