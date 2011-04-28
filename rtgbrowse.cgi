@@ -88,7 +88,10 @@ elsif !rid.nil? && rid != 0
   ex.list_interfaces(rid).each do |intf|
     next if intf[:status] != 'active'
     next if intf[:speed] == 0
-    name_split = intf[:name].gsub(/\s+/, ' ').split(/\b/).map { |x| (x.to_i if x =~ /^\d+$/) or x }
+    # Remove extra spaces, add spaces between characters and numbers (i.e. Ethernet1 -> Ethernet 1)
+    name_normalized = intf[:name].gsub(/\s+/, ' ').gsub(/([a-z])([0-9])/i, '\1 \2').gsub(/([0-9])([a-z])/i, '\1 \2')
+    # Split on word boundaries into an array, and try to make numeric parts numeric
+    name_split = name_normalized.split(/\b/).map { |x| (x.to_i if x =~ /^\d+$/) or x }
     intf_list << [ name_split, intf ]
   end
   intf_list.sort!
