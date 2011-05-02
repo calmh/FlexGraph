@@ -1,0 +1,73 @@
+body {
+  font-family: Calibri, Helvetica, sans-serif;
+  margin: 0px;
+}
+
+a {
+  text-decoration: none;
+}
+
+a img {
+  border: none;
+}
+
+p.quiet {
+  color: #555;
+  font-size: small;
+}
+
+div.interface {
+  float: left;
+}
+
+div.router {
+  float: left;
+  padding: 2px;
+  width: 12em;
+}
+
+div.seealso {
+  padding: 5px;
+  margin: 5px;
+  background: #ffb;
+  border: 1px solid #ff8;
+}
+
+div.seealso p {
+  margin: 2px;
+}
+
+div#aggrlink {
+  padding: 5px;
+  margin: 5px;
+  background: #bbf;
+  border: 1px solid #88f;
+}
+
+div#aggrlink a {
+  color: #00a;
+}
+
+#content {
+  margin: 5px;
+}
+
+#header {
+  margin: 0;
+  padding: 2px;
+  background: #eee;
+  border-bottom: 1px solid #ccc;
+}
+
+.separator {
+  color: #aaa;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+#logo {
+  padding-left: 8px;
+  font-style: italic;
+  font-weight: bold;
+}
+

@@ -4,11 +4,7 @@ require 'lib/gnuplotter'
 require 'extractor/rtg'
 require 'cgi'
 
-def searchbox
-  '<form id="searchbox" style="display: none">
-  <p>Substring filter: <input type="text" name="search" id="search"></input></p>
-  </form>'
-end
+$resourcePath = '/FlexGraph/'
 
 def aggrlink
   '<div id="aggrlink" style="display: none">
@@ -79,7 +75,7 @@ elsif !rid.nil? && rid != 0
   router = ex.router_name rid
   title router
 
-  body "<div class='hide'>"
+  body "<div id='aggrGraphs'>"
   body "<h2>Device Aggregate</h2>"
 
   # Sort the interface list as numerically as possible
@@ -97,11 +93,12 @@ elsif !rid.nil? && rid != 0
   intf_list.sort!
 
   ids = intf_list.map { |name, intf| rid.to_s + ':' + intf[:id].to_s }.join "+"
-  body "<img src='rtgplot.cgi?w=620&h=200&id=#{ids}&title=Aggregate+traffic&secs=86400&old=#{old}&only_i=1' />"
-  body "<img src='rtgplot.cgi?w=620&h=200&id=#{ids}&title=Aggregate+packets&secs=86400&old=#{old}&only_i=1&type=pps' />"
-
+  body "<img width='620' height='200' src='rtgplot.cgi?w=620&h=200&id=#{ids}&title=Aggregate+traffic&secs=86400&old=#{old}&only_i=1' />"
+  body "<img width='620' height='200' src='rtgplot.cgi?w=620&h=200&id=#{ids}&title=Aggregate+packets&secs=86400&old=#{old}&only_i=1&type=pps' />"
   body "<h2>Interfaces</h2>"
+  body "</div>"
 
+  body "<div class='hide'>"
   # Get list of routers that match any of the interface descriptions
   match_list = []
   intf_list.each do |s, i|
@@ -121,7 +118,7 @@ elsif !rid.nil? && rid != 0
   intf_list.each do |intf_name_split, intf|
     body "<div class='interface filterable' id='#{intf[:name]} #{intf[:description]}'>"
     body "<a href='?rid=#{rid}&iid=#{intf[:id]}&old=#{old}'>"
-    body "<img data-plot-id='#{rid}:#{intf[:id]}' src='rtgplot.cgi?w=400&h=200&id=#{rid}:#{intf[:id]}&title=#{intf[:name]}+#{intf[:description]}&secs=43200&old=#{old}' />"
+    body "<img width='400' height='200' data-plot-id='#{rid}:#{intf[:id]}' src='rtgplot.cgi?w=400&h=200&id=#{rid}:#{intf[:id]}&title=#{intf[:name]}+#{intf[:description]}&secs=43200&old=#{old}' />"
     body "</a>"
     body "</div>"
   end
@@ -139,102 +136,11 @@ puts <<HEADER
 <!DOCTYPE html>
 <html>
 <head>
-<style type='text/css'>
-body {
-  font-family: Calibri, Helvetica, sans-serif;
-}
-
-a {
-  text-decoration: none;
-}
-
-a img {
-  border: none;
-}
-
-p.quiet {
-  color: #555;
-  font-size: small;
-}
-
-div.interface {
-  float: left;
-}
-
-div.router {
-  float: left;
-  padding: 2px;
-  width: 12em;
-}
-
-div.seealso {
-  padding: 5px;
-  margin: 5px;
-  background: #ffb;
-  border: 1px solid #ff8;
-}
-
-div.seealso p {
-  margin: 2px;
-}
-
-div#aggrlink {
-  padding: 5px;
-  margin: 5px;
-  background: #bbf;
-  border: 1px solid #88f;
-}
-
-div#aggrlink a {
-  color: #00a;
-}
-
-</style>
+<link rel="stylesheet" href="#{$resourcePath}styles.css" />
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
-<script type="text/javascript">
-filter = function(text) {
-  if (text == "") {
-    $('.filterable').show();
-    $('.hide').show();
-    $('#aggrlink').hide();
-  } else {
-    $(".filterable[id!='" + text + "']").hide();
-    $(".filterable[id*='" + text + "']").show();
-    $('.hide').hide();
-
-    var aggrs = "";
-    var aggrcount = 0;
-    $(".filterable[id*='" + text + "'] img").each(function() {
-      var id = this.getAttribute('data-plot-id')
-      if (aggrs.length > 0 ) {
-        aggrs += '+';
-      }
-      aggrs += id;
-      aggrcount += 1;
-    });
-
-    if (aggrcount > 1) {
-      $('#aggrlink a').attr('href', 'rtgplot.cgi?id=' + aggrs + '&secs=86400&title=Aggregate+graph+for+' + text);
-      $('#aggrlink').show();
-    } else {
-      $('#aggrlink').hide();
-    }
-  }
-}
-
-$(document).ready(function() {
-  if ($('.filterable').length > 0) {
-    var sb = $('#search')
-    sb.keyup(function() {
-      filter(sb.val());
-    });
-    filter(sb.val());
-    $('#searchbox').show();
-    sb.focus();
-    }
-});
-</script>
+<script type="text/javascript" src="#{$resourcePath}scripts.js"></script>
 HEADER
+
 if !$title.nil?
   puts "<title>#{$title}</title>"
 else
@@ -242,11 +148,19 @@ else
 end
 puts "</head>"
 puts "<body>"
+
+puts "<div id='header'>"
+puts "<span id='logo'>FlexGraph</span>"
+puts "<span id='showAggr' style='display: none'><span class='separator'>|</span><input type='checkbox' id='aggrChecked'></input><label for='aggrChecked'>Show device aggregate graphs</label></span>"
+puts "<span id='searchbox' style='display: none'><span class='separator'>|</span>Substring filter: <input type='text' name='search' id='search'></input></span>"
+puts '</div>'
+
+puts "<div id='content'>"
+
 if !$title.nil?
   puts "<h1>#{$title}</h1>"
 end
-puts searchbox
-puts "<div id='content'>"
+
 puts aggrlink
 puts $body.join "\n"
 puts "</div>"
