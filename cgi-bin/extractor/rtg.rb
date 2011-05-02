@@ -3,6 +3,10 @@ require 'date'
 require 'yaml'
 
 class RTGExtractor
+  def gauge(table, ids, secs)
+    averaged_rate table, ids[0], ids[1], secs, period_for_secs(secs)
+  end
+
   def traffic_data_added(ids, secs)
     data_added ids, secs, [ 'ifInOctets' ], [ 'ifOutOctets' ]
   end

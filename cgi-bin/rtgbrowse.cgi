@@ -5,6 +5,10 @@ require 'extractor/rtg'
 require 'cgi'
 
 $resourcePath = '/FlexGraph/'
+$graphers = [
+  { :regexp => /^CPU/, :plotter => 'cpuplot.cgi' },
+  { :regexp => :default, :plotter => 'rtgplot.cgi' },
+]
 
 def aggrlink
   '<div id="aggrlink" style="display: none">
@@ -67,7 +71,12 @@ if !iid.nil? && iid != 0 && !rid.nil? && rid != 0
 
   [ 14400, 86400, 86400*7, 86400*30, 86400*365 ].each do |interval|
     body "<div class='interface'>"
-    body "<img src='rtgplot.cgi?id=#{rid}:#{iid}&title=#{router}+#{intf}&secs=#{interval}&old=#{old}' />"
+    $graphers.each do |grapher|
+      if grapher[:regexp] == :default || intf =~ grapher[:regexp]
+        body "<img src='#{grapher[:plotter]}?id=#{rid}:#{iid}&title=#{router}+#{intf}&secs=#{interval}&old=#{old}' />"
+        break
+      end
+    end
     body "</div>"
   end
 elsif !rid.nil? && rid != 0
@@ -118,7 +127,12 @@ elsif !rid.nil? && rid != 0
   intf_list.each do |intf_name_split, intf|
     body "<div class='interface filterable' id='#{intf[:name]} #{intf[:description]}'>"
     body "<a href='?rid=#{rid}&iid=#{intf[:id]}&old=#{old}'>"
-    body "<img width='400' height='200' data-plot-id='#{rid}:#{intf[:id]}' src='rtgplot.cgi?w=400&h=200&id=#{rid}:#{intf[:id]}&title=#{intf[:name]}+#{intf[:description]}&secs=43200&old=#{old}' />"
+    $graphers.each do |grapher|
+      if grapher[:regexp] == :default || intf[:name] =~ grapher[:regexp]
+        body "<img width='400' height='200' data-plot-id='#{rid}:#{intf[:id]}' src='#{grapher[:plotter]}?w=400&h=200&id=#{rid}:#{intf[:id]}&title=#{intf[:name]}+#{intf[:description]}&secs=43200&old=#{old}' />"
+        break
+      end
+    end
     body "</a>"
     body "</div>"
   end
