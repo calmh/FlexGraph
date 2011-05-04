@@ -73,7 +73,9 @@ if !iid.nil? && iid != 0 && !rid.nil? && rid != 0
     body "<div class='interface'>"
     $graphers.each do |grapher|
       if grapher[:regexp] == :default || intf =~ grapher[:regexp]
-        body "<img src='#{grapher[:plotter]}?id=#{rid}:#{iid}&title=#{router}+#{intf}&secs=#{interval}&old=#{old}' />"
+        body "<a href='#{grapher[:plotter]}?w=1280&h=500&id=#{rid}:#{iid}&title=#{router}+#{intf}&secs=#{interval}&old=#{old}'>"
+        body "<img src='#{grapher[:plotter]}?w=640&h=250&id=#{rid}:#{iid}&title=#{router}+#{intf}&secs=#{interval}&old=#{old}' />"
+        body "</a>"
         break
       end
     end
