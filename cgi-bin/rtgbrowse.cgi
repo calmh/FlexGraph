@@ -86,9 +86,6 @@ elsif !rid.nil? && rid != 0
   router = ex.router_name rid
   title router
 
-  body "<div id='aggrGraphs'>"
-  body "<h2>Device Aggregate</h2>"
-
   # Sort the interface list as numerically as possible
   # i.e. GigabitEthernet1/0/2 before GigabitEthernet1/0/10
   intf_list = []
@@ -103,11 +100,14 @@ elsif !rid.nil? && rid != 0
   end
   intf_list.sort!
 
+  body "<div id='aggrGraphs' style='display: none'>"
+  body "<h2>Device Aggregate</h2>"
   ids = intf_list.map { |name, intf| rid.to_s + ':' + intf[:id].to_s }.join "+"
-  body "<img width='620' height='200' src='rtgplot.cgi?w=620&h=200&id=#{ids}&title=Aggregate+traffic&secs=86400&old=#{old}&only_i=1' />"
-  body "<img width='620' height='200' src='rtgplot.cgi?w=620&h=200&id=#{ids}&title=Aggregate+packets&secs=86400&old=#{old}&only_i=1&type=pps' />"
-  body "<h2>Interfaces</h2>"
+  body "<img width='620' height='200' data-src='rtgplot.cgi?w=620&h=200&id=#{ids}&title=Aggregate+traffic&secs=86400&old=#{old}&only_i=1' />"
+  body "<img width='620' height='200' data-src='rtgplot.cgi?w=620&h=200&id=#{ids}&title=Aggregate+packets&secs=86400&old=#{old}&only_i=1&type=pps' />"
   body "</div>"
+
+  body "<h2 class='hide'>Interfaces</h2>"
 
   body "<div class='hide'>"
   # Get list of routers that match any of the interface descriptions
