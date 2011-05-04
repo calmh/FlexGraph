@@ -24,12 +24,16 @@ class RTGExtractor
     [ 0, 1 ].each do |i|
       tables[i].each do |table|
         ids.each do |rid, iid|
-          new_data = averaged_rate table, rid, iid, secs, period_for_secs(secs)
-          if data[i].nil?
-            data[i] = new_data
-          else
-            data[i] = tsmerge data[i], new_data
-            data[i] = data[i].map { |x| [ x[0], x[1] + x[2] ] }
+          begin
+            new_data = averaged_rate table, rid, iid, secs, period_for_secs(secs)
+            if data[i].nil?
+              data[i] = new_data
+            else
+              data[i] = tsmerge data[i], new_data
+              data[i] = data[i].map { |x| [ x[0], x[1] + x[2] ] }
+            end
+          rescue
+            # Ignore failures in getting data from db
           end
         end
       end
